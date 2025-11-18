@@ -278,7 +278,7 @@ function Layout(){
 
           {/* Keep Log out as its own button so clicking Notifications doesn’t trigger logout */}
           <button
-              className="hidden md:inline-flex items-center text-sm px-3 py-1.5 border rounded-lg hover:bg-gray-50"
+            className="hidden md:inline-flex items-center text-sm px-3 py-1.5 border rounded-lg hover:bg-gray-50"
             onClick={logoutAndReload}
             aria-label="Log out"
             type="button"
@@ -580,7 +580,7 @@ function Feed(){
               <input type="file" className="hidden" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/>
               <span className="text-sm text-gray-700">{file?file.name:'Add a photo'}</span>
             </label>
-            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{ if (user?.isFollowPending) return; if (pendingFollow) return;
+            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{
               try{
                 let imageKey: string | undefined
                 if(file){
@@ -788,8 +788,7 @@ function Profile(){
 
   const [token,setToken]=React.useState(readIdTokenSync());
   const [data,setData]=React.useState<any>(null);
-  const [following, setFollowing] = React.useState(false);
-  const [pendingFollow, setPendingFollow] = React.useState(false);
+  const [following,setFollowing]=React.useState(false);
   const [meData, setMeData] = React.useState<any>(null)
   const [editingId,setEditingId]=React.useState<string|null>(null);
   const [editText,setEditText]=React.useState('');
@@ -806,7 +805,6 @@ function Profile(){
       const r=await getUser(token, handleParam); 
       setData(r); 
       setFollowing(r.isFollowing || false); 
-      setPendingFollow(!!(r.isFollowPending || r.followStatus==='pending')); 
     })(); 
   },[token, handleParam]);
 
@@ -871,7 +869,6 @@ function Profile(){
                   if(following){
                     await unfollow(token, profileSlug);
                     setFollowing(false);
-                    setPendingFollow(false);
                     setData((d:any)=>({ ...d, followers: Math.max(0, (d.followers||0)-1) }));
                   } else {
                     /* follow now creates a REQUEST instead of immediate follow */
@@ -889,22 +886,14 @@ function Profile(){
                         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
                         body: JSON.stringify({ handle: profileSlug })
                       });
-                    
-                      // lock UI immediately; also handle 409 from backend
-                      try {
-                        if (res && (res.ok || res.status === 409)) {
-                          setPendingFollow(true);
-                        }
-                      } catch {}
-}
+                    }
                     // mark pending locally (optional UI)
                     setFollowing(false);
                     setData((d:any)=>({ ...d, followers: (d.followers||0) }));
                   }
                 }catch(e:any){ alert(e.message||String(e)) }
               }}
-             disabled={pendingFollow}
-            >{pendingFollow ? "Pending" : (following ? "Unfollow" : "Follow")}</button>
+            >{following? "Unfollow":"Follow"}</button>
           )}
         </div>
       </Card>
@@ -1195,11 +1184,10 @@ function UserRow({initial, token, isSelf}:{initial:any, token:string, isSelf?:bo
         {!isSelf && (
           <div className="ml-auto">
             <button
-              disabled={user?.isFollowPending}
               className={"px-3 py-1.5 rounded-lg border text-sm " + (user.isFollowing ? "bg-gray-100" : "bg-indigo-600 text-white")}
               onClick={async()=>{
                 try {
-                  if (user.isFollowing) { await unfollow(token, user.handle); setUser((u:any)=>({...u, isFollowing:false, isFollowPending:true})) }
+                  if (user.isFollowing) { await unfollow(token, user.handle); setUser((u:any)=>({...u, isFollowing:false})) }
                   else {
                   const API_BASE =
         (CONFIG as any).API_BASE_URL ||
@@ -1214,15 +1202,12 @@ function UserRow({initial, token, isSelf}:{initial:any, token:string, isSelf?:bo
                     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
                     body: JSON.stringify({ handle: user.handle })
                   });
-
-                  // Make button show pending even if backend returns 409 (already pending)
-                  try { if (res && (res.ok || res.status === 409)) { /* no-op; visual */ } } catch {}
-                  setUser((u:any)=>({...u, isFollowing:false, isFollowPending:true}))
+                  setUser((u:any)=>({...u, isFollowing:false}))
                 }
                 } catch (e:any) { alert(e.message||String(e)) }
               }}
             >
-              {user.isFollowPending ? 'Pending' : (user.isFollowing ? 'Unfollow' : 'Follow')}
+              {user.isFollowing ? 'Unfollow' : 'Follow'}
             </button>
           </div>
         )}

@@ -97,3 +97,74 @@ export function logout(email: string) {
   if (!e) return;
   makeUser(e).signOut();
 }
+
+// --- Forgot / Reset / Change password (Cognito User Pools) ---
+export const COGNITO_USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID || (window as any)?.CONFIG?.USER_POOL_ID;
+export const COGNITO_CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID || (window as any)?.CONFIG?.USER_POOL_CLIENT_ID;
+
+export function readAccessTokenSync(): string | null {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)!;
+      if (k && (k.endsWith('.accessToken') || k.includes('accessToken'))) {
+        const v = localStorage.getItem(k);
+        if (v && v.split('.').length === 3) return v;
+      }
+    }
+  } catch {}
+  return null;
+}
+function __poolRegion(id?: string) {
+  const s = String(id || COGNITO_USER_POOL_ID || '');
+  return s.includes('_') ? s.split('_')[0] : s;
+}
+function __cognitoUrl() {
+  const region = __poolRegion();
+  if (!region) throw new Error('Missing Cognito region (USER_POOL_ID)');
+  return `https://cognito-idp.${region}.amazonaws.com/`;
+}
+function __authHeader(target: string) {
+  return {
+    'Content-Type': 'application/x-amz-json-1.1',
+    'X-Amz-Target': `AWSCognitoIdentityProviderService.${target}`,
+  };
+}
+
+export async function forgotPassword(email: string) {
+  if (!COGNITO_CLIENT_ID) throw new Error('Missing Cognito ClientId');
+  const r = await fetch(__cognitoUrl(), {
+    method: 'POST',
+    headers: __authHeader('ForgotPassword'),
+    body: JSON.stringify({ ClientId: COGNITO_CLIENT_ID, Username: email.trim().toLowerCase() }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+export async function confirmForgotPassword(email: string, code: string, newPassword: string) {
+  if (!COGNITO_CLIENT_ID) throw new Error('Missing Cognito ClientId');
+  const r = await fetch(__cognitoUrl(), {
+    method: 'POST',
+    headers: __authHeader('ConfirmForgotPassword'),
+    body: JSON.stringify({
+      ClientId: COGNITO_CLIENT_ID,
+      Username: email.trim().toLowerCase(),
+      ConfirmationCode: code.trim(),
+      Password: newPassword,
+    }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+export async function changePassword(oldPassword: string, newPassword: string) {
+  const AccessToken = readAccessTokenSync();
+  if (!AccessToken) throw new Error('Not logged in (no access token found)');
+  const r = await fetch(__cognitoUrl(), {
+    method: 'POST',
+    headers: __authHeader('ChangePassword'),
+    body: JSON.stringify({ AccessToken, PreviousPassword: oldPassword, ProposedPassword: newPassword }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}

@@ -1,4 +1,4 @@
-import { confirmSignup, login, resend, signUp } from './auth';
+import { confirmSignup, login, resend, signUp, forgotPassword, confirmForgotPassword, changePassword } from './auth';
 // main.tsx (patched with global NotificationsDropdown placement + robust JSON handling)
 
 function readIdTokenSync(): string {
@@ -180,39 +180,6 @@ function NotificationsDropdown(){
       console.error('accept follow failed', e);
     }
   }
-  async function declineFollow(fromUserId: string, id: string){
-    try {
-      let token = readIdTokenSync();
-      if (!token) {
-        try { token = await waitForIdToken(1000); } catch {}
-      }
-      if (!token) return;
-      const API_BASE =
-        (CONFIG as any).API_BASE_URL ||
-        (CONFIG as any).apiUrl ||
-        (window as any).CONFIG?.API_BASE_URL ||
-        (window as any).CONFIG?.apiUrl ||
-        (import.meta as any).env?.VITE_API_URL ||
-        '';
-
-      const url = API_BASE + '/follow-decline';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, 'X-Ignore-Auth-Redirect': '1' },
-        body: JSON.stringify({ fromUserId })
-      });
-      if (!res.ok) {
-        const txt = await res.text().catch(()=>'');
-        console.error('decline follow failed', res.status, txt);
-        alert('Decline failed: ' + res.status + ' ' + (txt||''));
-        return;
-      }
-      setItems(prev => prev.filter(n => n.id !== id));
-    } catch(e){
-      console.error('decline follow failed', e);
-      alert(String(e));
-    }
-  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -268,8 +235,8 @@ function NotificationsDropdown(){
                     </div>
                     {n.type === 'follow_request' && (
                       <div className="flex gap-1">
-                        <button onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); acceptFollow(n.fromUserId, n.id); }} type="button" className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600">Accept</button>
-                        <button type="button" onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); declineFollow(n.fromUserId, n.id); }} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Decline</button>
+                        <button onClick={()=>acceptFollow(n.fromUserId, n.id)} className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600">Accept</button>
+                        <button onClick={()=>setItems(prev=>prev.filter(x=>x.id!==n.id))} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Decline</button>
                       </div>
                     )}
                   </div>
@@ -305,7 +272,7 @@ function Layout(){
           <Link to="/search" className="md:hidden ml-auto text-sm text-gray-600">Search</Link>
 
           {/* NEW: global notifications button lives in the header, not inside Log out */}
-          {(console.log('Header renders NotificationsDropdown'), (window as any).__SB_HEADER_MARK='has-nd', null) || <NotificationsDropdown/>}
+          <NotificationsDropdown/>
 
           <Link to="/settings" className="hidden md:inline-flex items-center text-sm px-3 py-1.5 border rounded-lg hover:bg-gray-50">Settings</Link>
 
@@ -613,7 +580,8 @@ function Feed(){
               <input type="file" className="hidden" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/>
               <span className="text-sm text-gray-700">{file?file.name:'Add a photo'}</span>
             </label>
-            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{ try{
+            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{ if (user?.isFollowPending) return; if (pendingFollow) return;
+              try{
                 let imageKey: string | undefined
                 if(file){
                   const id = Object.keys(localStorage).find(k=>k.includes('idToken'))!
@@ -691,7 +659,7 @@ function Feed(){
                       onClick={async () => {
                         const id = Object.keys(localStorage).find(k => k.includes('idToken'))!;
                         const tok = localStorage.getItem(id)!;
-                        await updatePost(tok, it.id, editText, undefined);
+                        await editPost(tok, it.id, editText, undefined);
                         setEditingId(null); setEditText('');
                         const f = await getFeed(tok); setItems(f.items);
                       }}
@@ -1265,7 +1233,12 @@ function UserRow({initial, token, isSelf}:{initial:any, token:string, isSelf?:bo
 
 /* ------------------------------ Settings ------------------------------ */
 function Settings(){
-  const [token,setToken]=React.useState(readIdTokenSync());
+  
+  const [pwOld, setPwOld] = React.useState('');
+  const [pwNew, setPwNew] = React.useState('');
+  const [pwBusy, setPwBusy] = React.useState(false);
+  const [pwMsg, setPwMsg] = React.useState<string|null>(null);
+const [token,setToken]=React.useState(readIdTokenSync());
   const [meData,setMeData]=React.useState<any|null>(null);
   React.useEffect(()=>{ const id=Object.keys(localStorage).find(k=>k.includes('idToken')); if(id){ setToken(localStorage.getItem(id)||'') } },[]);
   React.useEffect(()=>{ (async()=>{ if(!token) return; try{ const r=await me(token); setMeData(r);}catch(e){} })() },[token]);
