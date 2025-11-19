@@ -1721,6 +1721,7 @@ function PostPage(){
 }
 const router = createBrowserRouter([
   { path: "/privacy", element: <PrivacyPolicyPage/> },
+  { path: "/support", element: <SupportPage/> },
   { path: "/", element: <Layout/>, children: [
     { index: true, element: <Feed/> },
     { path: "start", element: <Navigate to="/signup" replace /> },
@@ -2090,6 +2091,115 @@ function PrivacyPolicyPage() {
           </section>
         </div>
       </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Support Page ------------------------------ */
+function SupportPage() {
+  return (
+    <div>
+      {/* Simple header for standalone page */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+          <a href="/" className="flex items-center">
+            <img
+              src="https://scooterbooter-public.s3.us-east-1.amazonaws.com/scoot.png"
+              alt=""
+              className="h-7 w-auto object-contain select-none"
+              draggable={false}
+            />
+            <span className="sr-only">Scooter Booter</span>
+          </a>
+          <a href="/" className="ml-auto text-sm text-gray-600 hover:text-gray-900">Back to Home</a>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <Card>
+          <h1 className="text-3xl font-bold mb-2">Support</h1>
+          <p className="text-sm text-gray-600 mb-6">Get help with ScooterBooter</p>
+
+          <div className="space-y-6 text-sm">
+            <section>
+              <h2 className="text-xl font-semibold mb-2">Contact Us</h2>
+              <p className="text-gray-700 mb-3">
+                Need help or have questions about ScooterBooter? We're here to help!
+              </p>
+              <div className="bg-gray-50 border rounded-lg p-4">
+                <p className="font-medium mb-2">Email Support</p>
+                <p className="text-gray-700">
+                  <strong>Email:</strong> <a href="mailto:contactscoot@yahoo.com" className="text-indigo-600 hover:underline">contactscoot@yahoo.com</a>
+                </p>
+                <p className="text-gray-600 text-xs mt-2">
+                  We typically respond within 24-48 hours during business days.
+                </p>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold mb-2">Frequently Asked Questions</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-1">How do I create an account?</h3>
+                  <p className="text-gray-700">
+                    You'll need an invite code to sign up for ScooterBooter. Once you have a code, visit the signup page, enter your email, password, and invite code to create your account.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-1">How do I reset my password?</h3>
+                  <p className="text-gray-700">
+                    On the login page, click "Forgot password?" and follow the instructions. You'll receive a reset code via email.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-1">How do I delete my account?</h3>
+                  <p className="text-gray-700">
+                    Go to Settings in the app and you'll find the option to delete your account. Please note that account deletion is permanent and cannot be undone.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-1">How do I change my username?</h3>
+                  <p className="text-gray-700">
+                    Currently, usernames cannot be changed after they are set. Please contact support if you need assistance.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-1">How do I report inappropriate content?</h3>
+                  <p className="text-gray-700">
+                    Please email us at <a href="mailto:contactscoot@yahoo.com" className="text-indigo-600 hover:underline">contactscoot@yahoo.com</a> with details about the content and we'll review it promptly.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold mb-2">Privacy & Security</h2>
+              <p className="text-gray-700">
+                For information about how we handle your data, please review our <a href="/privacy" className="text-indigo-600 hover:underline">Privacy Policy</a>.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold mb-2">Feature Requests & Feedback</h2>
+              <p className="text-gray-700">
+                We love hearing from our users! If you have ideas for new features or feedback about the app, please reach out to us at <a href="mailto:contactscoot@yahoo.com" className="text-indigo-600 hover:underline">contactscoot@yahoo.com</a>.
+              </p>
+            </section>
+
+            <section className="border-t pt-4 mt-6">
+              <p className="text-center text-gray-600 italic">
+                Thank you for using ScooterBooter!
+              </p>
+            </section>
+          </div>
+        </Card>
       </div>
     </div>
   );
