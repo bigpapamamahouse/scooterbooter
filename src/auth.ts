@@ -7,10 +7,24 @@ import {
 } from 'amazon-cognito-identity-js';
 import { CONFIG } from './config';
 
-const pool = new CognitoUserPool({
-  UserPoolId: CONFIG.userPoolId,
-  ClientId: CONFIG.userPoolClientId,
-});
+let poolInstance: CognitoUserPool | null = null;
+
+function createPool(): CognitoUserPool {
+  if (!poolInstance) {
+    const userPoolId = CONFIG.userPoolId;
+    const clientId = CONFIG.userPoolClientId;
+
+    if (!userPoolId || !clientId) {
+      throw new Error('Both UserPoolId and ClientId are required.');
+    }
+
+    poolInstance = new CognitoUserPool({
+      UserPoolId: userPoolId,
+      ClientId: clientId,
+    });
+  }
+  return poolInstance;
+}
 
 function assertNonEmpty(value: string | undefined | null, field: string) {
   const v = (value ?? '').trim();
@@ -24,7 +38,7 @@ function assertNonEmpty(value: string | undefined | null, field: string) {
 }
 
 function makeUser(username: string) {
-  return new CognitoUser({ Username: username, Pool: pool });
+  return new CognitoUser({ Username: username, Pool: createPool() });
 }
 
 export function signUp(email: string, password: string, invite: string) {
@@ -34,7 +48,7 @@ export function signUp(email: string, password: string, invite: string) {
   const attrs = [new CognitoUserAttribute({ Name: 'custom:invite', Value: i })];
 
   return new Promise((resolve, reject) => {
-    pool.signUp(e, p, attrs, [], (err, data) => (err ? reject(err) : resolve(data)));
+    createPool().signUp(e, p, attrs, [], (err, data) => (err ? reject(err) : resolve(data)));
   });
 }
 
