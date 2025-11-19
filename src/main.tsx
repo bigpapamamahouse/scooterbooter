@@ -1732,7 +1732,8 @@ const router = createBrowserRouter([
     { path: "search", element: <Search/> },
     { path: "settings", element: <Settings/> },
         { path: "p/:postId", element: <PostPage/> },
-    { path: "claim", element: <ClaimUsernamePage/> }
+    { path: "claim", element: <ClaimUsernamePage/> },
+    { path: "privacy", element: <PrivacyPolicyPage/> }
   ]},
 ])
 
@@ -1750,7 +1751,7 @@ function ClaimUsernamePage() {
   const nav = useNavigate();
 
   const [token, setToken] = React.useState(readIdTokenSync());
-  
+
   // If the browser/password manager autofills something weird (like an ID token), clear it.
   React.useEffect(() => {
     if (handle && (handle.split('.').length === 3 || handle.length > 24)) {
@@ -1798,6 +1799,280 @@ React.useEffect(() => {
           {saving ? 'Saving…' : 'Claim username'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Privacy Policy ------------------------------ */
+function PrivacyPolicyPage() {
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card>
+        <h1 className="text-3xl font-bold mb-2">Privacy Policy for ScooterBooter</h1>
+        <p className="text-sm text-gray-600 mb-6">Last Updated: November 18, 2025</p>
+
+        <div className="space-y-6 text-sm">
+          <section>
+            <h2 className="text-xl font-semibold mb-2">Introduction</h2>
+            <p className="text-gray-700">
+              ScooterBooter ("we," "us," or "our") operates the ScooterBooter mobile application (the "App"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our App.
+            </p>
+            <p className="text-gray-700 mt-2">
+              By using ScooterBooter, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, do not use the App.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">1. Information We Collect</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">1.1 Information You Provide to Us</h3>
+            <div className="ml-4">
+              <p className="font-medium mb-1">Account Information:</p>
+              <ul className="list-disc ml-6 space-y-1 text-gray-700">
+                <li>Email address</li>
+                <li>Password (securely encrypted and stored)</li>
+                <li>Full name</li>
+                <li>Username/handle</li>
+                <li>Profile picture/avatar</li>
+                <li>Invite code (during registration)</li>
+              </ul>
+
+              <p className="font-medium mt-3 mb-1">Content You Create:</p>
+              <ul className="list-disc ml-6 space-y-1 text-gray-700">
+                <li>Posts (text and images)</li>
+                <li>Comments on posts</li>
+                <li>Emoji reactions to posts</li>
+                <li>Profile information updates</li>
+              </ul>
+
+              <p className="font-medium mt-3 mb-1">Social Interactions:</p>
+              <ul className="list-disc ml-6 space-y-1 text-gray-700">
+                <li>Follow requests sent and received</li>
+                <li>Follower and following relationships</li>
+                <li>User search queries</li>
+              </ul>
+            </div>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">1.2 Information Automatically Collected</h3>
+            <div className="ml-4">
+              <p className="font-medium mb-1">Device and Technical Information:</p>
+              <ul className="list-disc ml-6 space-y-1 text-gray-700">
+                <li>Device type (iOS or Android)</li>
+                <li>Push notification tokens</li>
+                <li>App version</li>
+                <li>Operating system version</li>
+                <li>Device identifiers for push notifications</li>
+              </ul>
+
+              <p className="font-medium mt-3 mb-1">Usage Information:</p>
+              <ul className="list-disc ml-6 space-y-1 text-gray-700">
+                <li>Authentication tokens for maintaining your session</li>
+                <li>Notification interaction data (read/unread status)</li>
+                <li>App feature usage and interactions</li>
+                <li>Cache data for app performance optimization</li>
+              </ul>
+            </div>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">1.3 Information from Third Parties</h3>
+            <p className="text-gray-700 ml-4">We do not collect information about you from third-party sources.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">2. How We Use Your Information</h2>
+            <p className="text-gray-700 mb-2">We use the information we collect to:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li><strong>Provide and Maintain the Service:</strong> Create and manage your account, authenticate your identity, and enable core app functionality</li>
+              <li><strong>Social Features:</strong> Enable you to post content, comment, react to posts, follow other users, and receive notifications about social interactions</li>
+              <li><strong>Communications:</strong> Send you push notifications about comments, reactions, mentions, and follow requests (with your permission)</li>
+              <li><strong>Security:</strong> Protect against unauthorized access, fraud, and abuse</li>
+              <li><strong>Compliance:</strong> Comply with legal obligations and enforce our Terms of Service</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">3. How We Share Your Information</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">3.1 Public Information</h3>
+            <p className="text-gray-700 mb-2">The following information is visible to other users of the App:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Your profile picture, full name, and username</li>
+              <li>Your posts and comments</li>
+              <li>Your reactions to posts</li>
+              <li>Your follower and following counts</li>
+              <li>Users you follow and who follow you (depending on privacy settings)</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">3.2 Service Providers</h3>
+            <p className="text-gray-700 mb-2">We share your information with trusted third-party service providers who assist us in operating the App:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li><strong>Amazon Web Services (AWS):</strong> We use AWS services for authentication (Cognito), data storage, API infrastructure, and content delivery. Your data is stored in AWS's us-east-1 region.</li>
+              <li><strong>Expo Push Notification Service:</strong> We share device push tokens with Expo to deliver notifications about app activity.</li>
+            </ul>
+            <p className="text-gray-700 mt-2">These service providers are contractually obligated to protect your information and use it only for the purposes we specify.</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">3.3 Legal Requirements</h3>
+            <p className="text-gray-700">We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court order or government agency).</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">3.4 Business Transfers</h3>
+            <p className="text-gray-700">If we are involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">4. Data Storage and Security</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4.1 Data Storage</h3>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li><strong>Cloud Storage:</strong> Your account information, posts, comments, and social interactions are stored securely on Amazon Web Services infrastructure in the United States (us-east-1 region).</li>
+              <li><strong>Local Device Storage:</strong> Authentication tokens, notification preferences, and app settings are stored locally on your device using encrypted storage (iOS Keychain on iOS devices, Android Keystore on Android devices).</li>
+              <li><strong>Media Storage:</strong> Images you upload are stored on Amazon S3 and delivered via Amazon CloudFront CDN.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">4.2 Security Measures</h3>
+            <p className="text-gray-700 mb-2">We implement industry-standard security measures to protect your information:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Passwords are encrypted and never stored in plain text</li>
+              <li>All data transmission uses HTTPS encryption</li>
+              <li>Authentication tokens are securely stored and automatically refreshed</li>
+              <li>Access to backend systems is restricted and monitored</li>
+            </ul>
+            <p className="text-gray-700 mt-2">However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to protect your personal information, we cannot guarantee absolute security.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">5. Data Retention</h2>
+            <p className="text-gray-700 mb-2">We retain your information for as long as your account is active or as needed to provide you services. Specifically:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li><strong>Account Data:</strong> Retained until you delete your account through the App settings. Upon account deletion, all your data is immediately and permanently removed from our active systems.</li>
+              <li><strong>Posts and Comments:</strong> Retained until you delete them individually, or until you delete your account (which removes all posts and comments)</li>
+              <li><strong>Authentication Tokens:</strong> Automatically refreshed and cleared when you sign out</li>
+              <li><strong>Local Cache:</strong> Automatically cleared every 5 minutes and when you sign out</li>
+              <li><strong>Notification History:</strong> Retained for your reference; older notifications may be purged. All notifications are deleted when you delete your account.</li>
+              <li><strong>Backup Data:</strong> Deleted data may remain in system backups for a limited period (typically 30-90 days) for disaster recovery purposes, but will not be accessible or used</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">6. Your Privacy Rights and Choices</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.1 Access and Update</h3>
+            <p className="text-gray-700">You can access and update your profile information at any time through the App's settings.</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.2 Delete Content</h3>
+            <p className="text-gray-700">You can delete your posts and comments at any time through the App.</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.3 Account Deletion</h3>
+            <p className="text-gray-700 mb-2">You can delete your account at any time directly from the App's Settings screen. When you delete your account:</p>
+
+            <p className="font-medium mt-3 mb-1">What Gets Deleted Immediately:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Your user profile (name, email, username, avatar)</li>
+              <li>All posts you've created</li>
+              <li>All comments you've made</li>
+              <li>All reactions you've given to posts</li>
+              <li>All follow relationships (users you follow and users who follow you)</li>
+              <li>All notifications associated with your account</li>
+              <li>All invite codes you've created</li>
+              <li>Your authentication credentials</li>
+            </ul>
+
+            <p className="font-medium mt-3 mb-1">Important Notes:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Account deletion is <strong>permanent and cannot be undone</strong></li>
+              <li>The deletion process happens immediately upon confirmation</li>
+              <li>Your content will no longer be visible to other users</li>
+              <li>You will be automatically signed out after deletion</li>
+              <li>Some data may be retained in system backups for a limited period (typically 30-90 days) for disaster recovery purposes, but will not be accessible or used</li>
+            </ul>
+            <p className="text-gray-700 mt-2">If you have questions about account deletion, you can contact us at contactscoot@yahoo.com.</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.4 Push Notifications</h3>
+            <p className="text-gray-700 mb-2">You can opt out of push notifications by:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Denying notification permissions when prompted by the App</li>
+              <li>Disabling notifications in your device settings</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.5 Marketing Communications</h3>
+            <p className="text-gray-700">We do not send marketing communications at this time. If we do in the future, you will be able to opt out.</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">6.6 Your Legal Rights</h3>
+            <p className="text-gray-700 mb-2">Depending on your location, you may have the following rights:</p>
+
+            <p className="font-medium mt-3 mb-1">For California Residents (CCPA):</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Right to know what personal information is collected</li>
+              <li>Right to delete personal information</li>
+              <li>Right to opt-out of sale of personal information (Note: We do not sell personal information)</li>
+              <li>Right to non-discrimination for exercising your rights</li>
+            </ul>
+
+            <p className="font-medium mt-3 mb-1">For EU/UK Residents (GDPR):</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Right to access your personal data</li>
+              <li>Right to rectification of inaccurate data</li>
+              <li>Right to erasure ("right to be forgotten")</li>
+              <li>Right to restrict processing</li>
+              <li>Right to data portability</li>
+              <li>Right to object to processing</li>
+              <li>Right to withdraw consent</li>
+            </ul>
+            <p className="text-gray-700 mt-2">To exercise these rights, please contact us at contactscoot@yahoo.com.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">7. Children's Privacy</h2>
+            <p className="text-gray-700">
+              ScooterBooter is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at contactscoot@yahoo.com, and we will delete such information from our systems.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">8. International Data Transfers</h2>
+            <p className="text-gray-700">
+              Your information may be transferred to and maintained on servers located outside of your state, province, country, or other governmental jurisdiction where data protection laws may differ. By using the App, you consent to the transfer of your information to the United States and other jurisdictions where we operate.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">9. Third-Party Links</h2>
+            <p className="text-gray-700">
+              The App may contain links to third-party websites or services. We are not responsible for the privacy practices of these third parties. We encourage you to read their privacy policies.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">10. Do Not Track Signals</h2>
+            <p className="text-gray-700">
+              We do not track users over time and across third-party websites, and therefore do not respond to Do Not Track (DNT) signals.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">11. Changes to This Privacy Policy</h2>
+            <p className="text-gray-700 mb-2">We may update this Privacy Policy from time to time. We will notify you of any changes by:</p>
+            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+              <li>Posting the new Privacy Policy in the App</li>
+              <li>Updating the "Last Updated" date at the top of this policy</li>
+              <li>Sending you a notification through the App or email (for material changes)</li>
+            </ul>
+            <p className="text-gray-700 mt-2">Your continued use of the App after changes are posted constitutes your acceptance of the updated Privacy Policy.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">12. Contact Us</h2>
+            <p className="text-gray-700">
+              If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us at:
+            </p>
+            <p className="text-gray-700 mt-2"><strong>Email:</strong> contactscoot@yahoo.com</p>
+          </section>
+
+          <section className="border-t pt-4 mt-6">
+            <p className="text-center text-gray-600 italic">
+              By using ScooterBooter, you acknowledge that you have read and understood this Privacy Policy.
+            </p>
+          </section>
+        </div>
+      </Card>
     </div>
   );
 }
