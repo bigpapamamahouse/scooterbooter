@@ -1720,6 +1720,7 @@ function PostPage(){
   );
 }
 const router = createBrowserRouter([
+  { path: "/privacy", element: <PrivacyPolicyPage/> },
   { path: "/", element: <Layout/>, children: [
     { index: true, element: <Feed/> },
     { path: "start", element: <Navigate to="/signup" replace /> },
@@ -1732,8 +1733,7 @@ const router = createBrowserRouter([
     { path: "search", element: <Search/> },
     { path: "settings", element: <Settings/> },
         { path: "p/:postId", element: <PostPage/> },
-    { path: "claim", element: <ClaimUsernamePage/> },
-    { path: "privacy", element: <PrivacyPolicyPage/> }
+    { path: "claim", element: <ClaimUsernamePage/> }
   ]},
 ])
 
@@ -1806,10 +1806,27 @@ React.useEffect(() => {
 /* ------------------------------ Privacy Policy ------------------------------ */
 function PrivacyPolicyPage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Card>
-        <h1 className="text-3xl font-bold mb-2">Privacy Policy for ScooterBooter</h1>
-        <p className="text-sm text-gray-600 mb-6">Last Updated: November 18, 2025</p>
+    <div>
+      {/* Simple header for standalone page */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+          <a href="/" className="flex items-center">
+            <img
+              src="https://scooterbooter-public.s3.us-east-1.amazonaws.com/scoot.png"
+              alt=""
+              className="h-7 w-auto object-contain select-none"
+              draggable={false}
+            />
+            <span className="sr-only">Scooter Booter</span>
+          </a>
+          <a href="/" className="ml-auto text-sm text-gray-600 hover:text-gray-900">Back to Home</a>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <Card>
+          <h1 className="text-3xl font-bold mb-2">Privacy Policy for ScooterBooter</h1>
+          <p className="text-sm text-gray-600 mb-6">Last Updated: November 18, 2025</p>
 
         <div className="space-y-6 text-sm">
           <section>
@@ -2073,6 +2090,7 @@ function PrivacyPolicyPage() {
           </section>
         </div>
       </Card>
+      </div>
     </div>
   );
 }
