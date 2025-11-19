@@ -1,4 +1,4 @@
-import { confirmSignup, login, resend, signUp, forgotPassword, confirmForgotPassword, changePassword } from './auth';
+import { confirm, confirmSignup, login, login as legacyLogin, resend, resend as legacyResend, signUp, signUp as legacySignUp, forgotPassword, confirmForgotPassword, changePassword } from './auth';
 // main.tsx (patched with global NotificationsDropdown placement + robust JSON handling)
 
 function readIdTokenSync(): string {
@@ -180,6 +180,39 @@ function NotificationsDropdown(){
       console.error('accept follow failed', e);
     }
   }
+  async function declineFollow(fromUserId: string, id: string){
+    try {
+      let token = readIdTokenSync();
+      if (!token) {
+        try { token = await waitForIdToken(1000); } catch {}
+      }
+      if (!token) return;
+      const API_BASE =
+        (CONFIG as any).API_BASE_URL ||
+        (CONFIG as any).apiUrl ||
+        (window as any).CONFIG?.API_BASE_URL ||
+        (window as any).CONFIG?.apiUrl ||
+        (import.meta as any).env?.VITE_API_URL ||
+        '';
+
+      const url = API_BASE + '/follow-decline';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, 'X-Ignore-Auth-Redirect': '1' },
+        body: JSON.stringify({ fromUserId })
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(()=>'');
+        console.error('decline follow failed', res.status, txt);
+        alert('Decline failed: ' + res.status + ' ' + (txt||''));
+        return;
+      }
+      setItems(prev => prev.filter(n => n.id !== id));
+    } catch(e){
+      console.error('decline follow failed', e);
+      alert(String(e));
+    }
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -235,8 +268,8 @@ function NotificationsDropdown(){
                     </div>
                     {n.type === 'follow_request' && (
                       <div className="flex gap-1">
-                        <button onClick={()=>acceptFollow(n.fromUserId, n.id)} className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600">Accept</button>
-                        <button onClick={()=>setItems(prev=>prev.filter(x=>x.id!==n.id))} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Decline</button>
+                        <button onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); acceptFollow(n.fromUserId, n.id); }} type="button" className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600">Accept</button>
+                        <button type="button" onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); declineFollow(n.fromUserId, n.id); }} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600">Decline</button>
                       </div>
                     )}
                   </div>
@@ -272,7 +305,7 @@ function Layout(){
           <Link to="/search" className="md:hidden ml-auto text-sm text-gray-600">Search</Link>
 
           {/* NEW: global notifications button lives in the header, not inside Log out */}
-          <NotificationsDropdown/>
+          {(console.log('Header renders NotificationsDropdown'), (window as any).__SB_HEADER_MARK='has-nd', null) || <NotificationsDropdown/>}
 
           <Link to="/settings" className="hidden md:inline-flex items-center text-sm px-3 py-1.5 border rounded-lg hover:bg-gray-50">Settings</Link>
 
@@ -580,8 +613,7 @@ function Feed(){
               <input type="file" className="hidden" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/>
               <span className="text-sm text-gray-700">{file?file.name:'Add a photo'}</span>
             </label>
-            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{ if (user?.isFollowPending) return; if (pendingFollow) return;
-              try{
+            <button className="bg-indigo-600 text-white rounded-lg px-4 py-2" onClick={async()=>{ try{
                 let imageKey: string | undefined
                 if(file){
                   const id = Object.keys(localStorage).find(k=>k.includes('idToken'))!
@@ -659,7 +691,7 @@ function Feed(){
                       onClick={async () => {
                         const id = Object.keys(localStorage).find(k => k.includes('idToken'))!;
                         const tok = localStorage.getItem(id)!;
-                        await editPost(tok, it.id, editText, undefined);
+                        await updatePost(tok, it.id, editText, undefined);
                         setEditingId(null); setEditText('');
                         const f = await getFeed(tok); setItems(f.items);
                       }}
@@ -680,11 +712,7 @@ function Feed(){
             <div className="text-center text-gray-500">No posts from people you follow yet.</div>
           )}
         </div>
-        </div>
-
-        <div className="space-y-4"><Admin/></div>
-      <div className="space-y-4"><Admin/></div>
-    </div>
+        </div>    </div>
   )
 }
 
@@ -1232,13 +1260,46 @@ function UserRow({initial, token, isSelf}:{initial:any, token:string, isSelf?:bo
 }
 
 /* ------------------------------ Settings ------------------------------ */
+
+/* ------------------------- Per-user invite code ------------------------- */
+function InviteCodeBlock({ token, meData }:{ token:string, meData:any }){
+  const [code,setCode] = React.useState<string>('');
+  React.useEffect(()=>{
+    if(!token || !meData?.userId) return;
+    const key = `inviteCode.${meData.userId}`;
+    const cached = localStorage.getItem(key);
+    async function ensure(){
+      try{
+        if(cached){
+          setCode(cached);
+          return;
+        }
+        // Auto-generate a code with 10 uses and cache it
+        const r = await createInvite(token, 10);
+        if(r?.code){
+          setCode(r.code);
+          localStorage.setItem(key, r.code);
+        }
+      }catch(e){ console.error('invite gen failed', e); }
+    }
+    ensure();
+  }, [token, meData?.userId]);
+
+  return (
+    <div className="bg-gray-50 border rounded-lg px-3 py-2">
+      <div className="text-sm text-gray-600 mb-1">Your invite code</div>
+      <div className="font-mono text-base">{code ? code : 'Generating…'}</div>
+    </div>
+  );
+}
+
 function Settings(){
-  
   const [pwOld, setPwOld] = React.useState('');
   const [pwNew, setPwNew] = React.useState('');
   const [pwBusy, setPwBusy] = React.useState(false);
   const [pwMsg, setPwMsg] = React.useState<string|null>(null);
-const [token,setToken]=React.useState(readIdTokenSync());
+
+  const [token,setToken]=React.useState(readIdTokenSync());
   const [meData,setMeData]=React.useState<any|null>(null);
   React.useEffect(()=>{ const id=Object.keys(localStorage).find(k=>k.includes('idToken')); if(id){ setToken(localStorage.getItem(id)||'') } },[]);
   React.useEffect(()=>{ (async()=>{ if(!token) return; try{ const r=await me(token); setMeData(r);}catch(e){} })() },[token]);
@@ -1251,6 +1312,12 @@ const [token,setToken]=React.useState(readIdTokenSync());
         <HoverAvatarUploader token={token} keyCurrent={meData.avatarKey} onSaved={(k)=>setMeData((d:any)=> d ? {...d, avatarKey:k} : d)} />
         <p className="text-sm text-gray-500 mt-3">Tip: square images look best. Max ~5MB.</p>
     </Card>
+    <Card>
+      <h2 className="text-lg font-semibold mb-3">Invite friends</h2>
+      <InviteCodeBlock token={token} meData={meData} />
+      <p className="text-sm text-gray-500 mt-2">This code allows up to 10 people to sign up.</p>
+    </Card>
+
 
     <Card>
       <h2 className="text-lg font-semibold mb-3">Profile</h2>
@@ -1348,7 +1415,14 @@ function LoginPage() {
   const [pw, setPw] = React.useState('');
   const nav = useNavigate();
 
-  return (
+  
+  const [fpMode, setFpMode] = React.useState<0|1|2>(0);
+  const [fpEmail, setFpEmail] = React.useState('');
+  const [fpCode, setFpCode] = React.useState('');
+  const [fpNew, setFpNew] = React.useState('');
+  const [fpBusy, setFpBusy] = React.useState(false);
+  const [fpMsg, setFpMsg] = React.useState<string|null>(null);
+return (
     <div className="max-w-lg mx-auto space-y-6">
       <Card>
         <h2 className="text-xl font-semibold mb-3">Log in</h2>
@@ -1378,7 +1452,61 @@ function LoginPage() {
       </Card>
 
       <p className="text-center text-sm text-gray-600">
-        New to Scoot?{' '}
+        
+      <div className="mt-3 text-sm">
+        {fpMode === 0 && (
+          <button type="button" className="text-indigo-600 hover:underline"
+            onClick={() => { setFpMode(1); setFpEmail(email || ''); setFpMsg(null); }}>
+            Forgot password?
+          </button>
+        )}
+
+        {fpMode === 1 && (
+          <div className="mt-2 space-y-2 border rounded-lg p-3">
+            <div className="font-medium">Reset your password</div>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="Email"
+              value={fpEmail} onChange={e=>setFpEmail(e.target.value)} />
+            <div className="flex gap-2">
+              <button type="button" className="px-3 py-2 rounded-lg bg-indigo-600 text-white"
+                disabled={fpBusy || !fpEmail}
+                onClick={async ()=>{ setFpBusy(true); setFpMsg(null);
+                  try { await forgotPassword(fpEmail); setFpMode(2); setFpMsg('Check your email for the code.'); }
+                  catch(e:any){ setFpMsg(e.message||String(e)); }
+                  finally{ setFpBusy(false); }
+                }}>
+                Send reset email
+              </button>
+              <button type="button" className="px-3 py-2 rounded-lg border" onClick={()=>setFpMode(0)}>Cancel</button>
+            </div>
+            {fpMsg && <div className="text-xs text-gray-600">{fpMsg}</div>}
+          </div>
+        )}
+
+        {fpMode === 2 && (
+          <div className="mt-2 space-y-2 border rounded-lg p-3">
+            <div className="font-medium">Enter code & new password</div>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="6-digit code"
+              value={fpCode} onChange={e=>setFpCode(e.target.value)} />
+            <input type="password" className="w-full border rounded-lg px-3 py-2" placeholder="New password"
+              value={fpNew} onChange={e=>setFpNew(e.target.value)} />
+            <div className="flex gap-2">
+              <button type="button" className="px-3 py-2 rounded-lg bg-indigo-600 text-white"
+                disabled={fpBusy || !fpEmail || !fpCode || !fpNew}
+                onClick={async ()=>{ setFpBusy(true); setFpMsg(null);
+                  try { await confirmForgotPassword(fpEmail, fpCode, fpNew); setFpMsg('Password updated! You can now log in.'); setFpMode(0); }
+                  catch(e:any){ setFpMsg(e.message||String(e)); }
+                  finally{ setFpBusy(false); }
+                }}>
+                Confirm reset
+              </button>
+              <button type="button" className="px-3 py-2 rounded-lg border" onClick={()=>setFpMode(0)}>Cancel</button>
+            </div>
+            {fpMsg && <div className="text-xs text-gray-600">{fpMsg}</div>}
+          </div>
+        )}
+      </div>
+
+New to Scoot?{' '}
         <button className="text-indigo-600 hover:underline" onClick={() => nav('/signup')}>
           Create an account
         </button>

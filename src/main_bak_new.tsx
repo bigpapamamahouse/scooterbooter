@@ -1,4 +1,4 @@
-import { confirmSignup, login, resend, signUp } from './auth';
+
 // main.tsx (patched with global NotificationsDropdown placement + robust JSON handling)
 
 function readIdTokenSync(): string {
@@ -41,7 +41,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {createBrowserRouter, RouterProvider, Link, Outlet, useNavigate, useParams, useLocation, Navigate} from 'react-router-dom'
 import './index.css'
-import { confirm, login as legacyLogin, resend as legacyResend, signUp as legacySignUp } from './auth'
+import { confirm, confirmSignup, login as legacyLogin, resend as legacyResend, signUp as legacySignUp, forgotPassword, confirmForgotPassword, changePassword } from './auth'
 import { CONFIG } from './config'
 import { me, claimUsername, getFeed, getUser, follow, unfollow,
          listFollowers, listFollowing, searchUsers, getUploadUrl, createPost,
@@ -1294,6 +1294,11 @@ function InviteCodeBlock({ token, meData }:{ token:string, meData:any }){
 }
 
 function Settings(){
+  const [pwOld, setPwOld] = React.useState('');
+  const [pwNew, setPwNew] = React.useState('');
+  const [pwBusy, setPwBusy] = React.useState(false);
+  const [pwMsg, setPwMsg] = React.useState<string|null>(null);
+
   const [token,setToken]=React.useState(readIdTokenSync());
   const [meData,setMeData]=React.useState<any|null>(null);
   React.useEffect(()=>{ const id=Object.keys(localStorage).find(k=>k.includes('idToken')); if(id){ setToken(localStorage.getItem(id)||'') } },[]);
@@ -1410,7 +1415,14 @@ function LoginPage() {
   const [pw, setPw] = React.useState('');
   const nav = useNavigate();
 
-  return (
+  
+  const [fpMode, setFpMode] = React.useState<0|1|2>(0);
+  const [fpEmail, setFpEmail] = React.useState('');
+  const [fpCode, setFpCode] = React.useState('');
+  const [fpNew, setFpNew] = React.useState('');
+  const [fpBusy, setFpBusy] = React.useState(false);
+  const [fpMsg, setFpMsg] = React.useState<string|null>(null);
+return (
     <div className="max-w-lg mx-auto space-y-6">
       <Card>
         <h2 className="text-xl font-semibold mb-3">Log in</h2>
@@ -1440,7 +1452,61 @@ function LoginPage() {
       </Card>
 
       <p className="text-center text-sm text-gray-600">
-        New to Scoot?{' '}
+        
+      <div className="mt-3 text-sm">
+        {fpMode === 0 && (
+          <button type="button" className="text-indigo-600 hover:underline"
+            onClick={() => { setFpMode(1); setFpEmail(email || ''); setFpMsg(null); }}>
+            Forgot password?
+          </button>
+        )}
+
+        {fpMode === 1 && (
+          <div className="mt-2 space-y-2 border rounded-lg p-3">
+            <div className="font-medium">Reset your password</div>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="Email"
+              value={fpEmail} onChange={e=>setFpEmail(e.target.value)} />
+            <div className="flex gap-2">
+              <button type="button" className="px-3 py-2 rounded-lg bg-indigo-600 text-white"
+                disabled={fpBusy || !fpEmail}
+                onClick={async ()=>{ setFpBusy(true); setFpMsg(null);
+                  try { await forgotPassword(fpEmail); setFpMode(2); setFpMsg('Check your email for the code.'); }
+                  catch(e:any){ setFpMsg(e.message||String(e)); }
+                  finally{ setFpBusy(false); }
+                }}>
+                Send reset email
+              </button>
+              <button type="button" className="px-3 py-2 rounded-lg border" onClick={()=>setFpMode(0)}>Cancel</button>
+            </div>
+            {fpMsg && <div className="text-xs text-gray-600">{fpMsg}</div>}
+          </div>
+        )}
+
+        {fpMode === 2 && (
+          <div className="mt-2 space-y-2 border rounded-lg p-3">
+            <div className="font-medium">Enter code & new password</div>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="6-digit code"
+              value={fpCode} onChange={e=>setFpCode(e.target.value)} />
+            <input type="password" className="w-full border rounded-lg px-3 py-2" placeholder="New password"
+              value={fpNew} onChange={e=>setFpNew(e.target.value)} />
+            <div className="flex gap-2">
+              <button type="button" className="px-3 py-2 rounded-lg bg-indigo-600 text-white"
+                disabled={fpBusy || !fpEmail || !fpCode || !fpNew}
+                onClick={async ()=>{ setFpBusy(true); setFpMsg(null);
+                  try { await confirmForgotPassword(fpEmail, fpCode, fpNew); setFpMsg('Password updated! You can now log in.'); setFpMode(0); }
+                  catch(e:any){ setFpMsg(e.message||String(e)); }
+                  finally{ setFpBusy(false); }
+                }}>
+                Confirm reset
+              </button>
+              <button type="button" className="px-3 py-2 rounded-lg border" onClick={()=>setFpMode(0)}>Cancel</button>
+            </div>
+            {fpMsg && <div className="text-xs text-gray-600">{fpMsg}</div>}
+          </div>
+        )}
+      </div>
+
+New to Scoot?{' '}
         <button className="text-indigo-600 hover:underline" onClick={() => nav('/signup')}>
           Create an account
         </button>
