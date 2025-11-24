@@ -113,8 +113,6 @@ export function logout(email: string) {
 }
 
 // --- Forgot / Reset / Change password (Cognito User Pools) ---
-export const COGNITO_USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID || (window as any)?.CONFIG?.USER_POOL_ID;
-export const COGNITO_CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID || (window as any)?.CONFIG?.USER_POOL_CLIENT_ID;
 
 export function readAccessTokenSync(): string | null {
   try {
@@ -129,7 +127,7 @@ export function readAccessTokenSync(): string | null {
   return null;
 }
 function __poolRegion(id?: string) {
-  const s = String(id || COGNITO_USER_POOL_ID || '');
+  const s = String(id || CONFIG.userPoolId || '');
   return s.includes('_') ? s.split('_')[0] : s;
 }
 function __cognitoUrl() {
@@ -145,23 +143,25 @@ function __authHeader(target: string) {
 }
 
 export async function forgotPassword(email: string) {
-  if (!COGNITO_CLIENT_ID) throw new Error('Missing Cognito ClientId');
+  const clientId = CONFIG.userPoolClientId;
+  if (!clientId) throw new Error('Missing Cognito ClientId');
   const r = await fetch(__cognitoUrl(), {
     method: 'POST',
     headers: __authHeader('ForgotPassword'),
-    body: JSON.stringify({ ClientId: COGNITO_CLIENT_ID, Username: email.trim().toLowerCase() }),
+    body: JSON.stringify({ ClientId: clientId, Username: email.trim().toLowerCase() }),
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 
 export async function confirmForgotPassword(email: string, code: string, newPassword: string) {
-  if (!COGNITO_CLIENT_ID) throw new Error('Missing Cognito ClientId');
+  const clientId = CONFIG.userPoolClientId;
+  if (!clientId) throw new Error('Missing Cognito ClientId');
   const r = await fetch(__cognitoUrl(), {
     method: 'POST',
     headers: __authHeader('ConfirmForgotPassword'),
     body: JSON.stringify({
-      ClientId: COGNITO_CLIENT_ID,
+      ClientId: clientId,
       Username: email.trim().toLowerCase(),
       ConfirmationCode: code.trim(),
       Password: newPassword,
