@@ -144,6 +144,13 @@ function __authHeader(target: string) {
 
 export async function forgotPassword(email: string) {
   const clientId = CONFIG.userPoolClientId;
+  console.log('[forgotPassword] Debug info:', {
+    clientId,
+    fromEnv: import.meta.env.VITE_USER_POOL_CLIENT_ID,
+    fromWindow: (window as any)?.CONFIG?.USER_POOL_CLIENT_ID,
+    windowConfigExists: !!(window as any)?.CONFIG,
+    windowConfigKeys: (window as any)?.CONFIG ? Object.keys((window as any).CONFIG) : []
+  });
   if (!clientId) throw new Error('Missing Cognito ClientId');
   const r = await fetch(__cognitoUrl(), {
     method: 'POST',
